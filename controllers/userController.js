@@ -72,7 +72,8 @@ export const loginUser = async (req, res) => {
 
     res.status(201).json({
       ...isEmailExists.toJSON(),  
-      expiresIn
+      expiresIn,
+      token
     })
   } catch (error) {
     console.log(error);

@@ -1,7 +1,24 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
+const taskSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
+  dueDate: {
+    type: Date,
+    required: true,
+  },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  }
+}, { timestamps: true });
 
-const taskSchema = new Schema({
-    
-})
+const Task = mongoose.model('Task', taskSchema);
+export default Task;
