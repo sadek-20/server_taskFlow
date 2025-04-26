@@ -5,8 +5,12 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+    // required: true,
+  },
   dueDate: {
-    type: Date,
+    type: String,
     required: true,
   },
   completed: {

@@ -39,47 +39,79 @@ export const registerUser = async (req, res) => {
 };
 
 
+export const login = async (req, res) => {
+  const { email, password } = req.body;
 
-export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body
+    // Check user exists
+    const user = await User.findOne({ email }).select("+password");
 
-    const isEmailExists = await User.findOne({
-      email: email.toLowerCase()
-    }).select("+password")
-
-    
-
-    if (!isEmailExists) {
-      return res.status(401).json({
-        message: 'invalid emial and password'
-      })
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    isEmailExists.password = undefined;
+    // if (user) {
+    //   return res.status(200).json({ message: user });
+    // }
 
-    const expiresIn = 7 * 24 * 60 * 60; // 7days
+    // Check password (plain text comparison)
+    if (user.password !== password) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-    const token = jwt.sign({
-      id: isEmailExists._id
-    }, jwt_secret, { expiresIn })
+    // Create JWT token
+    const token = jwt.sign({ id: user._id }, jwt_secret, {
+      expiresIn: "7d",
+    });
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      maxAge: expiresIn * 1000,
-      secure: false
-    })
-
-    res.status(201).json({
-      ...isEmailExists.toJSON(),  
-      expiresIn,
-      token
-    })
+    // Respond with token
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+     
+    });
   } catch (error) {
-    console.log(error);
-    res.status(401).json({
-      message: 'invalid emial or password',
-      error: error.message
-    })
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const getUser = async (req, res) => { 
+  try {
+    const user = await User.findById(req.userId).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Get user error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 }
+
+
+export const updateUser = async (req, res) => { 
+  try {
+    const { name,  password } = req.body;
+    
+    console.log("Update user data:", req.body);
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { name,  password },
+      { new: true, runValidators: true }
+    ).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Update user error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+

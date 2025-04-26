@@ -15,13 +15,15 @@ export const getTasks = async (req, res) => {
  }
 
 export const createTask = async (req, res) => { 
-    const { title, dueDate } = req.body;
+    const { title, dueDate  , description} = req.body;
+    
+    console.log("👀 createTask body:", req.body, "userId:", req.userId);
     const newTask = new Task({
         title,
         dueDate,
-        userId
-: req.userId, // Assuming you have userId in req object from middleware
-        completed: false,
+        description,
+        completed:false, // Default value
+        userId: req.userId // Associate task with the logged-in user
     })
     try {
         await newTask.save();
@@ -34,11 +36,12 @@ export const createTask = async (req, res) => {
 
 export const updateTask = async (req, res) => { 
     const { id } = req.params;
-    const { title, dueDate, completed } = req.body;
+    console.log("👀 updateTask id:", id, "body:", req.body);
+    const { title, dueDate, completed , description} = req.body;
     try {
         const updatedTask = await Task.findByIdAndUpdate(
             id,
-            { title, dueDate, completed },
+            { title, dueDate, completed , description },
             { new: true }
         );
         res.status(200).json(updatedTask);
@@ -49,6 +52,7 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => { 
     const { id } = req.params;
+    console.log("👀 deleteTask id:", id);
     try {
         await Task.findByIdAndDelete(id);
         res.status(200).json({ message: "Task deleted successfully" });
@@ -57,26 +61,26 @@ export const deleteTask = async (req, res) => {
     }
 }
 
-export const updateTaskStatus = async (req, res) => {
+
+
+
+export const toggleCompleted = async (req, res) => {
     const { id } = req.params;
-    const { completed } = req.body; // Completed can be true or false
-
+    console.log("👀 toggleCompleted id:", id);
     try {
-        const updatedTask = await Task.findByIdAndUpdate(
-            id,
-            { completed },
-            { new: true }
-        );
-
-        if (!updatedTask) {
+        const task = await Task.findById(id);
+        if (!task) {
             return res.status(404).json({ message: "Task not found" });
         }
-        res.status(200).json(updatedTask);
+        task.completed = !task.completed; console.log("👀 Task completed status toggled:", task.completed);
+        await task.save();
+        
+        res.status(200).json({message: "Task completed status toggled successfully", task });
     } catch (error) {
-        console.error("🔥 Error updating task status:", error);
-        res.status(500).json({ message: "Error updating task status", error: error.message });
+        console.error("🔥 Error toggling task completed status:", error);
+        res.status(500).json({ message: "Error toggling task completed status", error: error.message });
     }
-};
+ }
 
 
 export const getTaskById = async (req, res) => { 
