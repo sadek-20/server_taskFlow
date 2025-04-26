@@ -97,7 +97,8 @@ export const updateUser = async (req, res) => {
   try {
     const { name,  password } = req.body;
     
-    console.log("Update user data:", req.body);
+    // console.log("Update user data:", req.body);
+    
     const user = await User.findByIdAndUpdate(
       req.userId,
       { name,  password },
